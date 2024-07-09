@@ -1,8 +1,11 @@
 import "dotenv/config";
-import { zeroAddress } from "viem";
+import { Hex, http, zeroAddress } from "viem";
 import { getKernelClient } from "../utils";
 import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless";
-import { createViemAccount } from "../viemSigner";
+import { createViemAccount } from "../walletClient";
+import { createWalletClient } from "viem";
+import { sepolia } from "viem/chains";
+import { sendUserOperation } from "viem";
 const entryPoint = ENTRYPOINT_ADDRESS_V07;
 
 async function main() {
@@ -10,12 +13,17 @@ async function main() {
   const kernelClient = await getKernelClient(entryPoint);
 
   console.log("Account address:", kernelClient.account.address);
+  const privateKey = process.env.PRIVATE_KEY as Hex;
+  const account = await createViemAccount(privateKey);
+  const walletClient = createWalletClient({
+    account,
+    chain: sepolia,
+    transport: http("https://rpc.ankr.com/eth_sepolia"),
+  });
 
-  const account = createViemAccount("0x92ff03f3b5675403fdf9272c96315360c38d84c1e0ce76a8d3fdf4d2549f4d24");
   console.log("Account address:", account.address);
-  
-  
-  const userOpHash = await kernelClient.sendUserOperation({
+
+  const userOpHash = await walletClient.sendUserOperation({
     userOperation: {
       callData: await kernelClient.account.encodeCallData({
         to: zeroAddress,
@@ -24,7 +32,7 @@ async function main() {
       }),
     },
   });
-  
+
   console.log("UserOp hash:", userOpHash);
   console.log("Waiting for UserOp to complete...");
 

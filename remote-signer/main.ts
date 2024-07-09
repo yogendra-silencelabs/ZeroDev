@@ -13,6 +13,7 @@ import { http, Hex, createPublicClient, zeroAddress } from "viem"
 import { privateKeyToAccount } from "viem/accounts"
 import { sepolia } from "viem/chains"
 import { toECDSASigner } from "@zerodev/permissions/signers"
+import { createViemAccount } from "../viemSigner"
 
 if (
     !process.env.BUNDLER_RPC ||
@@ -29,7 +30,7 @@ const publicClient = createPublicClient({
     transport: http(process.env.BUNDLER_RPC)
 })
 
-const signer = privateKeyToAccount(process.env.PRIVATE_KEY as Hex)
+const signer = createViemAccount(process.env.PRIVATE_KEY as Hex)
 const chain = sepolia
 const entryPoint = ENTRYPOINT_ADDRESS_V07
 const apiKey = process.env.ZERODEV_API_KEY
